@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, Globe2, BookOpen } from 'lucide-react';
 
@@ -65,8 +65,18 @@ export function QuizBank() {
 
   return (
     <div className="min-h-screen bg-ios-gray-50">
-      {/* Header */}
-      <div className="px-4 pt-12 pb-2 bg-white/90 backdrop-blur-ios sticky top-0 z-50 border-b border-ios-gray-100">
+      {loading ? (
+        <div className="min-h-screen bg-ios-gray-50 flex items-center justify-center">
+          <div className="text-ios-gray-500">加载中...</div>
+        </div>
+      ) : error ? (
+        <div className="min-h-screen bg-ios-gray-50 flex items-center justify-center">
+          <div className="text-ios-red-500">{error}</div>
+        </div>
+      ) : (
+        <>
+          {/* Header */}
+          <div className="px-4 pt-12 pb-2 bg-white/90 backdrop-blur-ios sticky top-0 z-50 border-b border-ios-gray-100">
         <div className="flex items-center mb-4">
           <button
             onClick={() => navigate(-1)}

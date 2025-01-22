@@ -12,7 +12,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
         private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+      scopes: [
+        'https://www.googleapis.com/auth/spreadsheets.readonly',
+        'https://www.googleapis.com/auth/drive.readonly'
+      ],
     });
 
     const sheets = google.sheets({ version: 'v4', auth });

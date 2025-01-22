@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-ios bg-ios-gray-50 min-h-screen pb-[84px];
+  }
+}
+
+@layer components {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .header {
+    @apply bg-ios-gray-50 py-14 px-4 sticky top-0 z-50;
+  }
+
+  .random-options {
+    @apply flex gap-2.5 mx-4 overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .random-option-label {
+    @apply inline-flex items-center;
+  }
+}

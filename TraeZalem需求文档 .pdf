@@ -1,0 +1,2272 @@
+重构需求文档（更新版）
+
+目录
+项目概述
+功能需求
+2.1 用户管理
+2.2 题库管理
+2.3 考试功能
+2.4 收藏与错题复习
+2.5 广告管理
+2.6 历史记录与汇总
+2.7 大乱斗模式
+2.8 弹窗广告
+2.9 导航栏功能
+2.10 个人中心
+2.11 AI功能
+数据需求
+3.1 广告数据结构
+3.2 分类数据结构
+3.3 题库数据结构
+3.4 用户数据结构
+3.5 考试记录数据结构
+数据源信息
+4.1 Google Sheets 配置
+4.2 API 访问方式
+前端视觉设计
+5.1 设计原则
+5.2 页面布局
+5.3 加载占位符
+5.4 组件说明
+技术架构与开发方法
+6.1 前端技术栈
+6.2 后端技术栈
+6.3 数据存储
+6.4 安全与权限
+部署与运维
+附录
+8.1 广告数据示例
+8.2 分类数据示例
+8.3 题库数据示例
+
+1. 项目概述
+本项目为在线考试系统，旨在为用户提供丰富的考试题库、灵活的考试模式以及多样化的广告展示。系统通过Google Sheets作为数据源，管理广告、分类及题库数据。前端基于最新的视觉设计进行开发，确保用户体验良好。后端将负责数据处理、用户管理及与前端的接口交互。
+2. 功能需求
+2.1 用户管理
+功能描述：
+用户无需注册即可使用考试功能。
+记录用户的考试历史、收藏题目及错题记录。
+详细需求：
+通过浏览器的localStorage保存用户数据。
+支持数据的导入与导出（如需多设备同步，可考虑引入用户注册与登录功能）。
+2.2 题库管理
+功能描述：
+分类管理不同类型的题库。
+支持多语言（如中文、日语、英语、越南语、韩语）题库。
+详细需求：
+从Google Sheets获取分类及题库数据。
+支持动态加载不同分类的题库。
+动态获取套题信息： 各套题的Sheet信息（Spread ID、Sheet Name、API Key）应动态从“考题管理”Sheet中获取，避免硬编码。
+多语言支持： 除了日语外，其他语种（英语、越南语、韩语、中文）在考试时可启用“显示日语”选项，以双语模式展示题目和解说。日语语言用户不具备此选项。
+2.3 考试功能
+功能描述：
+用户可以选择不同的题库进行考试。
+支持随机题序和自动翻题功能。
+计时器功能，记录考试时间。
+支持暂停与继续考试。
+详细需求：
+加载选定题库的题目。
+根据用户设置随机打乱题目顺序。
+根据用户设置自动跳转至下一题。
+记录考试开始时间、结束时间及累计时间。
+支持保存当前考试进度，允许用户稍后继续。
+2.4 收藏与错题复习
+功能描述：
+用户可以收藏喜欢的题目。
+考试中回答错误的题目会被记录为错题，供后续复习。
+详细需求：
+通过收藏按钮（⭐）添加或移除收藏题目。
+收藏的数据保存在localStorage中。
+提供查看和测试收藏题目的功能。
+错题记录同样保存在localStorage中，用户可选择进行错题复习。
+2.5 广告管理
+功能描述：
+展示不同位置的广告，包括顶部轮播、中部滑动Banner、底部平铺Banner及弹窗广告。
+支持多种广告类型，如绝对URL和相对URL。
+详细需求：
+从Google Sheets获取广告数据。
+根据广告位置动态渲染广告。
+根据广告类型（绝对URL或相对URL）处理广告点击跳转：
+如果广告类型（adType）为abs，则直接访问外链（link）。
+如果广告类型（adType）不是abs，则根据商户ID拼接到./abs/pages/merchant.html?merchantId=商户ID进行跳转。
+弹窗广告支持不同状态展示（初始与展开状态）。
+2.6 历史记录与汇总
+功能描述：
+记录每次考试的结果，包括得分、正确/错误题数、用时等。
+提供汇总视图，展示用户的整体表现。
+详细需求：
+每次提交考试后，将结果保存到localStorage中的考试历史记录。
+汇总页面展示各套题的练习次数、平均得分、总错题数等统计数据。
+提供详细的每次考试记录查看。
+2.7 大乱斗模式
+功能描述：
+用户可以选择多个套题进行“大乱斗”，系统将随机抽取指定数量的题目进行综合测试。
+详细需求：
+通过弹窗界面选择多个套题。
+用户输入希望抽取的题目数量（10-500）。
+系统从选定套题中随机抽取题目，进行综合考试。
+注意事项：
+大乱斗模式不是固定的某些题目集合，而是用户根据当前题库选择的动态套题。
+“大乱斗套题”在需求文档中不再作为固定的套题，而是通过用户选择动态生成的题库组合。
+题目分配策略为完全随机，无特定优先级。
+大乱斗考试完成后，结果展示页面与普通考试页面相同。
+2.8 弹窗广告
+功能描述：
+在页面底部展示半圆形弹窗广告，支持展开查看更多信息。
+详细需求：
+弹窗分为两种状态：初始弹窗和展开弹窗。
+初始状态显示图标、标题和主要描述。
+展开状态显示更详细的内容、推广图片、操作按钮等。
+用户可通过点击关闭按钮或遮罩层关闭弹窗。
+2.9 导航栏功能
+功能描述：
+提供多项导航功能，包括动态菜单分页、个人中心、题库导航、驾校合宿、汽车服务及AI功能。
+详细需求：
+首页菜单分页动态渲染
+
+
+来源： 从1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U的Sheet1中获取D列（merchantType）数据，去重后渲染为菜单分页。
+子菜单展示： 进入每个菜单分页时，根据商户种类（D列）从E列获取对应的子类数据（具有相同merchantType的E列数据），并显示在子菜单中。
+菜单层级：
+如果某个merchantType有子类，则显示为一级菜单，并在点击后展开子菜单。
+如果没有子类，则仅显示为一级菜单。
+动态渲染： 使用JavaScript通过API调用获取数据，并动态生成菜单和子菜单。
+考试状态下页面展示
+
+
+需求：
+任意入口进入考试状态后（如从套题类型进入套题选择，再点击套题进入考试状态），其他不相关元素不应在页面展示，应仅显示纯粹的考试页面。
+使用JavaScript在进入考试状态时隐藏非考试相关的页面元素（如顶部导航、底部导航、广告等），仅显示#quizContainer。
+题库导航栏
+
+
+功能： 启用题库导航栏。
+需求：
+点击导航栏按钮后，纵向排列所有题库类型。
+点击题库类型后，展开具体的题库名称。
+再次点击具体题库名称则进入考试状态。
+加载策略： 子类列表一次加载两个纵屏内容，下拉后再加载两屏。
+驾校合宿导航栏
+
+
+功能： 启用驾校服务导航栏，改名为“驾校合宿”。
+需求：
+进入“驾校合宿”后，展示1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U的Sheet1中D列为“校园周边”的子类（如“中餐馆”、“便利店”、“物产店”等）。
+点击子类后，根据广告类型（adType）进行URL拼接或绝对URL跳转至商户详情页面。
+汽车服务导航栏
+
+
+功能： 启用汽车服务导航栏。
+需求：
+进入“汽车服务”后，展示1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U的Sheet1中D列为“汽车周边”的子类（如“二手车交易”、“代理拍卖”、“汽车维护”等）。
+点击子类后，根据广告类型（adType）进行URL拼接或绝对URL跳转至商户详情页面。
+AI功能导航栏
+
+
+功能： 将导航栏的“错题记录”改名为“AI”。
+需求：
+“AI”功能暂时不启用，显示为灰色按钮，禁用点击事件。
+预留未来AI对话框的集成位置。
+2.10 个人中心
+功能描述：
+提供用户的个人设置与管理功能，包括语言切换、清除历史记录、考试设置等。
+详细需求：
+语言切换：
+支持多语言切换功能，包括中文、日语、英语、越南语、韩语。
+除了日语外，其他语种可通过“显示日语”选项，启用双语模式展示题目和解说。
+日语语言用户不具备“显示日语”选项。
+点击切换语言按钮后，显示加载占位符（淡灰色配合光晕波动效果），加载新的语言内容后替换占位符。
+考试设置：
+包含随机题序、自动翻题、显示日语等选项。
+默认不开启任何设置功能。
+设置选项通过开关（复选框）控制。
+清除历史记录：
+提供“清除历史”按钮，允许用户清除所有历史记录和错题。
+清除历史后，提醒用户历史已清除，包括收藏。
+2.11 AI功能
+功能描述：
+提供多种AI工具，提升用户体验与学习效果。
+这些功能为未来的付费功能，待用户系统建立后开启。
+详细需求：
+AI问答：
+每天AI会提出问题，用户回答正确可获得积分奖励。
+记录用户的积分与回答情况。
+AI咨询：
+用户可以向AI提问任何有关驾考的问题。
+AI提供详细的解答与指导。
+AI购车咨询：
+基于当前系统抓取的汽车市场信息，结合用户的需求与情况，提供购车建议与咨询。
+未来规划：
+这些AI工具将作为付费功能，集成在个人中心中。
+需要预留特定的接口与组件位置，便于未来集成AI对话框。
+3. 数据需求
+3.1 广告数据结构
+字段说明：
+字段名
+数据类型
+描述
+id
+String
+商家ID，用于标识广告商家。
+position
+String
+广告位置，决定广告在页面中的显示位置（例如顶部、中部、底部等）。
+merchantType
+String
+商户种类，描述广告商家的类型或分类。
+image
+String
+广告图片的URL，用于展示广告视觉内容。
+adType
+String
+广告种类，abs 表示绝对URL，relative 表示相对URL。
+title
+String
+广告标题，用于描述广告内容。
+btntext
+String
+按钮文本，广告中按钮显示的文字。
+primetext
+String
+主要描述文本，广告的主要说明或促销信息。
+secondaryText
+String
+次要描述文本，广告的补充说明或详细信息。
+
+数据映射说明：
+根据代码分析和用户反馈，广告数据表 Sheet1 的列含义如下：
+列号
+列字母
+字段名
+描述
+1
+A
+id
+商家ID，用于标识广告商家。
+2
+B
+position
+广告位置，决定广告在页面中的显示位置（例如顶部、中部、底部等）。
+3
+C
+image
+广告图片的URL，用于展示广告视觉内容。
+4
+D
+merchantType
+商户种类，描述广告商家的类型或分类。
+12
+L
+adType
+广告种类，abs 表示绝对URL，relative 表示相对URL。
+10
+J
+title
+广告标题，用于描述广告内容。
+13
+M
+link
+广告跳转链接，用户点击广告后跳转的目标URL。
+14
+N
+btntext
+按钮文本，广告中按钮显示的文字。
+15
+O
+primetext
+主要描述文本，广告的主要说明或促销信息。
+16
+P
+secondaryText
+次要描述文本，广告的补充说明或详细信息。
+
+数据示例：
+A (id)
+B (position)
+C (image)
+D (merchantType)
+L (adType)
+J (title)
+M (link)
+N (btntext)
+O (primetext)
+P (secondaryText)
+m001
+1
+https://example.com/ad1.png
+餐饮
+abs
+优惠活动
+https://merchant1.com/promo
+立即参与
+限时优惠，速来参与！
+更多详情请访问我们的官网。
+m002
+2
+https://example.com/ad2.jpg
+零售
+abs
+新用户专享优惠
+https://merchant2.com/newuser
+立即注册
+注册即享受优惠
+不要错过我们的最新活动。
+m003
+slider
+https://example.com/slider-ad3.png
+教育
+relative
+夏季大促销
+./ads/pages/merchant.html?merchantId=m003
+了解更多
+夏季特惠，惊喜连连！
+点击了解详细促销信息。
+
+3.2 分类数据结构
+字段说明：
+字段名
+数据类型
+描述
+internalName
+String
+内部名称，用于标识分类的唯一名称。
+lang
+String
+语言类型，如 "CN" 表示中文，"JP" 表示日语。
+categoryName
+String
+分类名称，用户在前端界面看到的分类名称。
+sheetName
+String
+对应题库的 Google Sheets 表名。
+spreadId
+String
+对应题库的 Google Sheets 电子表格ID。
+apiKey
+String
+访问 Google Sheets API 所需的 API 密钥。
+internalCode
+String
+内部代码，用于关联不同语言版本的题库（如日语）。
+
+数据示例：
+internalName
+lang
+categoryName
+sheetName
+spreadId
+apiKey
+internalCode
+traffic_rules_cn
+CN
+交通规则
+交通套题1
+1BkTNZje3ehMPn2-PNH-yLT1kA...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+traffic_rules_jp
+JP
+交通规则（日语）
+交通套题1 日语
+1A2B3C4D5E6F7G8H9I0J1K2L3...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+traffic_rules_en
+EN
+交通规则（英语）
+交通套题1 英语
+1C3D4E5F6G7H8I9J0K1L2M3N4...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+traffic_rules_vn
+VN
+交通规则（越南语）
+交通套题1 越南语
+1D4E5F6G7H8I9J0K1L2M3N4O5...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+traffic_rules_kr
+KR
+交通规则（韩语）
+交通套题1 韩语
+1E5F6G7H8I9J0K1L2M3N4O5P6...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+dynamic_mode_cn
+CN
+动态选择
+动态选择套题
+动态获取（见说明）
+动态获取（见说明）
+dynamic_code
+
+注意：
+动态获取套题信息： 各套题的Spread ID、Sheet Name和API Key应从“考题管理”Sheet中动态获取，而非固定配置。
+多语言支持扩展： 除了日语外，其他语言（英语、越南语、韩语、中文）在考试时可通过“显示日语”开关，显示外语+日语的双语模式。
+3.3 题库数据结构
+字段说明：
+每个题库对应一个 Google Sheets 的工作表，其结构如下：
+列号
+列字母
+字段名
+描述
+1
+A
+question
+题目内容。
+2
+B
+image
+题目相关图片的URL。
+3
+C
+answer
+正确答案，⭕ 表示正确，❌ 表示错误。
+4
+D
+explanation
+答案解释或详细说明。
+5
+E
+jpQuestion
+（可选）日语题目内容。
+6
+F
+jpExplanation
+（可选）日语答案解释。
+7
+G
+enQuestion
+（可选）英语题目内容。
+8
+H
+enExplanation
+（可选）英语答案解释。
+9
+I
+vnQuestion
+（可选）越南语题目内容。
+10
+J
+vnExplanation
+（可选）越南语答案解释。
+11
+K
+krQuestion
+（可选）韩语题目内容。
+12
+L
+krExplanation
+（可选）韩语答案解释。
+
+数据示例：
+rowIndex
+question
+jpQuestion
+enQuestion
+vnQuestion
+krQuestion
+image
+answer
+explanation
+jpExplanation
+enExplanation
+vnExplanation
+krExplanation
+0
+交通信号灯是红色吗？
+交通信号は赤ですか？
+Is the traffic light red?
+Đèn giao thông có màu đỏ không?
+신호등은 빨간색입니까?
+https://example.com/q1.png
+⭕
+红灯表示停止。
+赤信号は停止を示します。
+Red light means stop.
+Đèn đỏ nghĩa là dừng lại.
+빨간색 신호는 정지를 의미합니다.
+1
+道路限速为80公里/小时？
+道路の制限速度は80km/hですか？
+Is the speed limit 80 km/h?
+Giới hạn tốc độ đường là 80 km/h?
+도로 제한 속도는 80km/h입니까?
+https://example.com/q2.png
+❌
+实际限速为60公里/小时。
+実際の制限速度は60km/hです。
+The actual speed limit is 60 km/h.
+Giới hạn tốc độ thực tế là 60 km/h.
+실제 제한 속도는 60km/h입니다.
+
+数据处理逻辑：
+多语言题库独立存储： 各语言的题目和解释存储在同一工作表中，通过不同列管理。
+双语模式加载： 在“显示日语”选项启用时，根据相同的rowIndex加载对应的日语内容和解释，并与主语言内容组合展示。
+加载其他语言内容： 支持英语、越南语、韩语用户同样可以通过“显示日语”选项，显示主语言（英语、越南语、韩语）+日语的双语模式。
+用途：
+每个题库对应一个 Google Sheets 的工作表。
+支持多语言，通过 internalCode 关联不同语言版本的题库。
+rowIndex 用于唯一标识题目，便于收藏和错题记录。
+3.4 用户数据结构
+字段说明：
+字段名
+数据类型
+描述
+favorites
+Object
+收藏的题目，键为唯一标识符，值为题目详情。
+mistakes
+Object
+错题记录，键为唯一标识符，值为错题详情。
+quizHistory
+Array
+考试历史记录，每条记录包含考试时间、得分等信息。
+currentExam
+Object
+当前正在进行的考试进度，包括当前题目索引、已答题目等信息。
+settings
+Object
+用户的设置选项，如随机题序、自动翻题、显示日语等。
+
+数据示例：
+{
+  "favorites": {
+    "1BkTNZje3ehMPn2-PNH-yLT1kA...||0||交通套题1||交通规则": {
+      "rowIndex": 0,
+      "question": "交通信号灯是红色吗？",
+      "image": "https://example.com/q1.png",
+      "answer": "⭕",
+      "explanation": "红灯表示停止。",
+      "spreadId": "1BkTNZje3ehMPn2-PNH-yLT1kA...",
+      "apiKey": "AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk",
+      "sheetName": "交通套题1",
+      "internalCode": "code001",
+      "jpQuestion": "交通信号は赤ですか？",
+      "jpExplanation": "赤信号は停止を示します。",
+      "enQuestion": "Is the traffic light red?",
+      "enExplanation": "Red light means stop.",
+      "vnQuestion": "Đèn giao thông có màu đỏ không?",
+      "vnExplanation": "Đèn đỏ nghĩa là dừng lại.",
+      "krQuestion": "신호등은 빨간색입니까?",
+      "krExplanation": "빨간색 신호는 정지를 의미합니다."
+    }
+  },
+  "mistakes": {
+    "1BkTNZje3ehMPn2-PNH-yLT1kA...||1||交通套题1": {
+      "rowIndex": 1,
+      "question": "道路限速为80公里/小时？",
+      "image": "https://example.com/q2.png",
+      "answer": "❌",
+      "explanation": "实际限速为60公里/小时。",
+      "spreadId": "1BkTNZje3ehMPn2-PNH-yLT1kA...",
+      "apiKey": "AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk",
+      "sheetName": "交通套题1",
+      "internalCode": "code001",
+      "count": 1,
+      "userAnswer": "❌",
+      "jpQuestion": "道路の制限速度は80km/hですか？",
+      "jpExplanation": "実際の制限速度は60km/hです。",
+      "enQuestion": "Is the speed limit 80 km/h?",
+      "enExplanation": "The actual speed limit is 60 km/h.",
+      "vnQuestion": "Giới hạn tốc độ đường là 80 km/h?",
+      "vnExplanation": "Giới hạn tốc độ thực tế là 60 km/h.",
+      "krQuestion": "도로 제한 속도는 80km/h입니까?",
+      "krExplanation": "실제 제한 속도는 60km/h입니다."
+    }
+  },
+  "quizHistory": [
+    {
+      "dateTime": "2025-01-20 10:30:00",
+      "sheetName": "交通套题1",
+      "wrongCount": 2,
+      "correctCount": 8,
+      "unansweredCount": 0,
+      "timeSpent": "10分钟30秒",
+      "answered": 10,
+      "total": 10,
+      "score": 80
+    }
+  ],
+  "currentExam": {
+    "sheetName": "交通套题1",
+    "currentQuestionIndex": 5,
+    "userAnswers": ["⭕", "❌", "⭕", "⭕", "❌"],
+    "questions": [...],
+    "randomOrder": true,
+    "autoNext": true,
+    "elapsedTime": 300000,
+    "isBattleMode": false,
+    "isMistakeMode": false,
+    "isFavoritesMode": false,
+    "showJapanese": true
+  },
+  "settings": {
+    "randomOrder": true,
+    "autoNext": true,
+    "showJapanese": true
+  }
+}
+
+3.5 考试记录数据结构
+字段说明：
+字段名
+数据类型
+描述
+dateTime
+String
+考试完成的日期和时间。
+sheetName
+String
+考试所使用的套题名称。
+wrongCount
+Number
+错误的题目数量。
+correctCount
+Number
+正确的题目数量。
+unansweredCount
+Number
+未回答的题目数量。
+timeSpent
+String
+考试所用的时间，格式为“X分钟Y秒”。
+answered
+Number
+已回答的题目数量（正确 + 错误）。
+total
+Number
+总题目数量。
+score
+Number
+考试得分。
+
+数据示例：
+{
+  "dateTime": "2025-01-20 10:30:00",
+  "sheetName": "交通套题1",
+  "wrongCount": 2,
+  "correctCount": 8,
+  "unansweredCount": 0,
+  "timeSpent": "10分钟30秒",
+  "answered": 10,
+  "total": 10,
+  "score": 80
+}
+
+4. 数据源信息
+4.1 Google Sheets 配置
+广告数据表 (Sheet1):
+列号
+列字母
+字段名
+描述
+1
+A
+id
+商家ID，用于标识广告商家。
+2
+B
+position
+广告位置，决定广告在页面中的显示位置（例如顶部、中部、底部等）。
+3
+C
+image
+广告图片的URL，用于展示广告视觉内容。
+4
+D
+merchantType
+商户种类，描述广告商家的类型或分类。
+12
+L
+adType
+广告种类，abs 表示绝对URL，relative 表示相对URL。
+10
+J
+title
+广告标题，用于描述广告内容。
+13
+M
+link
+广告跳转链接，用户点击广告后跳转的目标URL。
+14
+N
+btntext
+按钮文本，广告中按钮显示的文字。
+15
+O
+primetext
+主要描述文本，广告的主要说明或促销信息。
+16
+P
+secondaryText
+次要描述文本，广告的补充说明或详细信息。
+
+分类数据表 (考题管理):
+列号
+列字母
+字段名
+描述
+1
+A
+internalName
+内部名称，用于标识分类的唯一名称。
+2
+B
+lang
+语言类型，如 "CN" 表示中文，"JP" 表示日语。
+3
+C
+categoryName
+分类名称，用户在前端界面看到的分类名称。
+4
+D
+sheetName
+对应题库的 Google Sheets 表名。
+5
+E
+spreadId
+对应题库的 Google Sheets 电子表格ID。
+6
+F
+apiKey
+访问 Google Sheets API 所需的 API 密钥。
+7
+G
+internalCode
+内部代码，用于关联不同语言版本的题库（如日语、英语、越南语、韩语）。
+
+各套题的Sheet：
+每套题对应一个Google Sheets的工作表，结构如下：
+列号
+列字母
+字段名
+描述
+1
+A
+question
+题目内容。
+2
+B
+image
+题目相关图片的URL。
+3
+C
+answer
+正确答案，⭕ 表示正确，❌ 表示错误。
+4
+D
+explanation
+答案解释或详细说明。
+5
+E
+jpQuestion
+（可选）日语题目内容。
+6
+F
+jpExplanation
+（可选）日语答案解释。
+7
+G
+enQuestion
+（可选）英语题目内容。
+8
+H
+enExplanation
+（可选）英语答案解释。
+9
+I
+vnQuestion
+（可选）越南语题目内容。
+10
+J
+vnExplanation
+（可选）越南语答案解释。
+11
+K
+krQuestion
+（可选）韩语题目内容。
+12
+L
+krExplanation
+（可选）韩语答案解释。
+
+注意：
+题库数据表支持多语言，通过 internalCode 关联不同语言版本的题库。
+各语言的题库内容存储在同一工作表中，通过不同列管理。
+多语言扩展： 除了日语，其他语言（英语、越南语、韩语、中文）也可通过“显示日语”开关，显示外语+日语的双语模式。
+示例配置：
+广告管理：
+
+
+Spread ID: 1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U
+Sheet Name: Sheet1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+系统表（考题管理）：
+
+
+Spread ID: 1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w
+Sheet Name: 考题管理
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+各套题的Sheet：
+
+
+交通套题1：
+Spread ID: 1BkTNZje3ehMPn2-PNH-yLT1kA...
+Sheet Name: 交通套题1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 日语：
+Spread ID: 1A2B3C4D5E6F7G8H9I0J1K2L3...
+Sheet Name: 交通套题1 日语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 英语：
+Spread ID: 1B3C4D5E6F7G8H9I0J1K2L3M4...
+Sheet Name: 交通套题1 英语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 越南语：
+Spread ID: 1C4D5E6F7G8H9I0J1K2L3M4N5...
+Sheet Name: 交通套题1 越南语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 韩语：
+Spread ID: 1D5E6F7G8H9I0J1K2L3M4N5O6...
+Sheet Name: 交通套题1 韩语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+动态选择套题：
+Spread ID: 动态获取（见说明）
+Sheet Name: 动态获取（见说明）
+API Key: 动态获取（见说明）
+系统中引用的各个 Google Sheets 信息：
+广告管理：
+
+
+Spread ID: 1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U
+Sheet Name: Sheet1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+系统表（考题管理）：
+
+
+Spread ID: 1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w
+Sheet Name: 考题管理
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+各套题的Sheet：
+
+
+交通套题1：
+Spread ID: 1BkTNZje3ehMPn2-PNH-yLT1kA...
+Sheet Name: 交通套题1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 日语：
+Spread ID: 1A2B3C4D5E6F7G8H9I0J1K2L3...
+Sheet Name: 交通套题1 日语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 英语：
+Spread ID: 1B3C4D5E6F7G8H9I0J1K2L3M4...
+Sheet Name: 交通套题1 英语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 越南语：
+Spread ID: 1C4D5E6F7G8H9I0J1K2L3M4N5...
+Sheet Name: 交通套题1 越南语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 韩语：
+Spread ID: 1D5E6F7G8H9I0J1K2L3M4N5O6...
+Sheet Name: 交通套题1 韩语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+动态选择套题：
+Spread ID: 动态获取（见说明）
+Sheet Name: 动态获取（见说明）
+API Key: 动态获取（见说明）
+注意： 每套题的Spread ID和Sheet Name需在考题管理表中准确配置，以支持动态获取。
+3.4 用户数据结构
+字段说明：
+字段名
+数据类型
+描述
+favorites
+Object
+收藏的题目，键为唯一标识符，值为题目详情。
+mistakes
+Object
+错题记录，键为唯一标识符，值为错题详情。
+quizHistory
+Array
+考试历史记录，每条记录包含考试时间、得分等信息。
+currentExam
+Object
+当前正在进行的考试进度，包括当前题目索引、已答题目等信息。
+settings
+Object
+用户的设置选项，如随机题序、自动翻题、显示日语等。
+
+数据示例：
+{
+  "favorites": {
+    "1BkTNZje3ehMPn2-PNH-yLT1kA...||0||交通套题1||交通规则": {
+      "rowIndex": 0,
+      "question": "交通信号灯是红色吗？",
+      "image": "https://example.com/q1.png",
+      "answer": "⭕",
+      "explanation": "红灯表示停止。",
+      "spreadId": "1BkTNZje3ehMPn2-PNH-yLT1kA...",
+      "apiKey": "AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk",
+      "sheetName": "交通套题1",
+      "internalCode": "code001",
+      "jpQuestion": "交通信号は赤ですか？",
+      "jpExplanation": "赤信号は停止を示します。",
+      "enQuestion": "Is the traffic light red?",
+      "enExplanation": "Red light means stop.",
+      "vnQuestion": "Đèn giao thông có màu đỏ không?",
+      "vnExplanation": "Đèn đỏ nghĩa là dừng lại.",
+      "krQuestion": "신호등은 빨간색입니까?",
+      "krExplanation": "빨간색 신호는 정지를 의미합니다."
+    }
+  },
+  "mistakes": {
+    "1BkTNZje3ehMPn2-PNH-yLT1kA...||1||交通套题1": {
+      "rowIndex": 1,
+      "question": "道路限速为80公里/小时？",
+      "image": "https://example.com/q2.png",
+      "answer": "❌",
+      "explanation": "实际限速为60公里/小时。",
+      "spreadId": "1BkTNZje3ehMPn2-PNH-yLT1kA...",
+      "apiKey": "AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk",
+      "sheetName": "交通套题1",
+      "internalCode": "code001",
+      "count": 1,
+      "userAnswer": "❌",
+      "jpQuestion": "道路の制限速度は80km/hですか？",
+      "jpExplanation": "実際の制限速度は60km/hです。",
+      "enQuestion": "Is the speed limit 80 km/h?",
+      "enExplanation": "The actual speed limit is 60 km/h.",
+      "vnQuestion": "Giới hạn tốc độ đường là 80 km/h?",
+      "vnExplanation": "Giới hạn tốc độ thực tế là 60 km/h.",
+      "krQuestion": "도로 제한 속도는 80km/h입니까?",
+      "krExplanation": "실제 제한 속도는 60km/h입니다."
+    }
+  },
+  "quizHistory": [
+    {
+      "dateTime": "2025-01-20 10:30:00",
+      "sheetName": "交通套题1",
+      "wrongCount": 2,
+      "correctCount": 8,
+      "unansweredCount": 0,
+      "timeSpent": "10分钟30秒",
+      "answered": 10,
+      "total": 10,
+      "score": 80
+    }
+  ],
+  "currentExam": {
+    "sheetName": "交通套题1",
+    "currentQuestionIndex": 5,
+    "userAnswers": ["⭕", "❌", "⭕", "⭕", "❌"],
+    "questions": [...],
+    "randomOrder": true,
+    "autoNext": true,
+    "elapsedTime": 300000,
+    "isBattleMode": false,
+    "isMistakeMode": false,
+    "isFavoritesMode": false,
+    "showJapanese": true
+  },
+  "settings": {
+    "randomOrder": true,
+    "autoNext": true,
+    "showJapanese": true
+  }
+}
+
+3.5 考试记录数据结构
+字段说明：
+字段名
+数据类型
+描述
+dateTime
+String
+考试完成的日期和时间。
+sheetName
+String
+考试所使用的套题名称。
+wrongCount
+Number
+错误的题目数量。
+correctCount
+Number
+正确的题目数量。
+unansweredCount
+Number
+未回答的题目数量。
+timeSpent
+String
+考试所用的时间，格式为“X分钟Y秒”。
+answered
+Number
+已回答的题目数量（正确 + 错误）。
+total
+Number
+总题目数量。
+score
+Number
+考试得分。
+
+数据示例：
+{
+  "dateTime": "2025-01-20 10:30:00",
+  "sheetName": "交通套题1",
+  "wrongCount": 2,
+  "correctCount": 8,
+  "unansweredCount": 0,
+  "timeSpent": "10分钟30秒",
+  "answered": 10,
+  "total": 10,
+  "score": 80
+}
+
+4. 数据源信息
+4.1 Google Sheets 配置
+广告数据表 (Sheet1):
+列号
+列字母
+字段名
+描述
+1
+A
+id
+商家ID，用于标识广告商家。
+2
+B
+position
+广告位置，决定广告在页面中的显示位置（例如顶部、中部、底部等）。
+3
+C
+image
+广告图片的URL，用于展示广告视觉内容。
+4
+D
+merchantType
+商户种类，描述广告商家的类型或分类。
+12
+L
+adType
+广告种类，abs 表示绝对URL，relative 表示相对URL。
+10
+J
+title
+广告标题，用于描述广告内容。
+13
+M
+link
+广告跳转链接，用户点击广告后跳转的目标URL。
+14
+N
+btntext
+按钮文本，广告中按钮显示的文字。
+15
+O
+primetext
+主要描述文本，广告的主要说明或促销信息。
+16
+P
+secondaryText
+次要描述文本，广告的补充说明或详细信息。
+
+分类数据表 (考题管理):
+列号
+列字母
+字段名
+描述
+1
+A
+internalName
+内部名称，用于标识分类的唯一名称。
+2
+B
+lang
+语言类型，如 "CN" 表示中文，"JP" 表示日语，"EN" 表示英语，"VN" 表示越南语，"KR" 表示韩语。
+3
+C
+categoryName
+分类名称，用户在前端界面看到的分类名称。
+4
+D
+sheetName
+对应题库的 Google Sheets 表名。
+5
+E
+spreadId
+对应题库的 Google Sheets 电子表格ID。
+6
+F
+apiKey
+访问 Google Sheets API 所需的 API 密钥。
+7
+G
+internalCode
+内部代码，用于关联不同语言版本的题库（如日语、英语、越南语、韩语）。
+
+各套题的Sheet：
+每套题对应一个Google Sheets的工作表，结构如下：
+列号
+列字母
+字段名
+描述
+1
+A
+question
+题目内容。
+2
+B
+image
+题目相关图片的URL。
+3
+C
+answer
+正确答案，⭕ 表示正确，❌ 表示错误。
+4
+D
+explanation
+答案解释或详细说明。
+5
+E
+jpQuestion
+（可选）日语题目内容。
+6
+F
+jpExplanation
+（可选）日语答案解释。
+7
+G
+enQuestion
+（可选）英语题目内容。
+8
+H
+enExplanation
+（可选）英语答案解释。
+9
+I
+vnQuestion
+（可选）越南语题目内容。
+10
+J
+vnExplanation
+（可选）越南语答案解释。
+11
+K
+krQuestion
+（可选）韩语题目内容。
+12
+L
+krExplanation
+（可选）韩语答案解释。
+
+注意：
+题库数据表支持多语言，通过 internalCode 关联不同语言版本的题库。
+各语言的题库内容存储在同一工作表中，通过不同列管理。
+多语言扩展： 除了日语，其他语言（英语、越南语、韩语、中文）也可通过“显示日语”开关，显示外语+日语的双语模式。
+示例配置：
+广告管理：
+
+
+Spread ID: 1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U
+Sheet Name: Sheet1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+系统表（考题管理）：
+
+
+Spread ID: 1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w
+Sheet Name: 考题管理
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+各套题的Sheet：
+
+
+交通套题1：
+Spread ID: 1BkTNZje3ehMPn2-PNH-yLT1kA...
+Sheet Name: 交通套题1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 日语：
+Spread ID: 1A2B3C4D5E6F7G8H9I0J1K2L3...
+Sheet Name: 交通套题1 日语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 英语：
+Spread ID: 1B3C4D5E6F7G8H9I0J1K2L3M4...
+Sheet Name: 交通套题1 英语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 越南语：
+Spread ID: 1C4D5E6F7G8H9I0J1K2L3M4N5...
+Sheet Name: 交通套题1 越南语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 韩语：
+Spread ID: 1D5E6F7G8H9I0J1K2L3M4N5O6...
+Sheet Name: 交通套题1 韩语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+动态选择套题：
+Spread ID: 动态获取（见说明）
+Sheet Name: 动态获取（见说明）
+API Key: 动态获取（见说明）
+系统中引用的各个 Google Sheets 信息：
+广告管理：
+
+
+Spread ID: 1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U
+Sheet Name: Sheet1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+系统表（考题管理）：
+
+
+Spread ID: 1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w
+Sheet Name: 考题管理
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+各套题的Sheet：
+
+
+交通套题1：
+Spread ID: 1BkTNZje3ehMPn2-PNH-yLT1kA...
+Sheet Name: 交通套题1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 日语：
+Spread ID: 1A2B3C4D5E6F7G8H9I0J1K2L3...
+Sheet Name: 交通套题1 日语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 英语：
+Spread ID: 1B3C4D5E6F7G8H9I0J1K2L3M4...
+Sheet Name: 交通套题1 英语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 越南语：
+Spread ID: 1C4D5E6F7G8H9I0J1K2L3M4N5...
+Sheet Name: 交通套题1 越南语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 韩语：
+Spread ID: 1D5E6F7G8H9I0J1K2L3M4N5O6...
+Sheet Name: 交通套题1 韩语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+动态选择套题：
+Spread ID: 动态获取（见说明）
+Sheet Name: 动态获取（见说明）
+API Key: 动态获取（见说明）
+注意： 每套题的Spread ID和Sheet Name需在考题管理表中准确配置，以支持动态获取。
+4.2 API 访问方式
+Google Sheets API 访问格式：
+读取广告数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{ADS_SPREAD_ID}/values/{ADS_SHEET_NAME}?key={ADS_API_KEY}
+
+
+读取分类数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{SYSTEM_SPREADSHEET_ID}/values/考题管理!A:G?key={SYSTEM_API_KEY}
+
+
+读取题库数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{spreadId}/values/{sheetName}?key={apiKey}
+
+
+参数说明：
+参数
+描述
+{ADS_SPREAD_ID}
+广告数据表的电子表格ID。
+{ADS_SHEET_NAME}
+广告数据表中的工作表名称（如 Sheet1）。
+{ADS_API_KEY}
+访问 Google Sheets API 的 API 密钥。
+{SYSTEM_SPREADSHEET_ID}
+分类数据表的电子表格ID。
+{spreadId}
+具体题库的电子表格ID。
+{sheetName}
+具体题库的工作表名称。
+{apiKey}
+访问具体题库 Google Sheets API 的 API 密钥。
+
+示例：
+获取广告数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U/values/Sheet1?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+获取分类数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w/values/考题管理!A:G?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+获取题库数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1BkTNZje3ehMPn2-PNH-yLT1kA.../values/交通套题1?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+系统中引用的各个 Google Sheets 信息：
+广告管理：
+
+
+Spread ID: 1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U
+Sheet Name: Sheet1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+系统表（考题管理）：
+
+
+Spread ID: 1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w
+Sheet Name: 考题管理
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+各套题的Sheet：
+
+
+交通套题1：
+Spread ID: 1BkTNZje3ehMPn2-PNH-yLT1kA...
+Sheet Name: 交通套题1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 日语：
+Spread ID: 1A2B3C4D5E6F7G8H9I0J1K2L3...
+Sheet Name: 交通套题1 日语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 英语：
+Spread ID: 1B3C4D5E6F7G8H9I0J1K2L3M4...
+Sheet Name: 交通套题1 英语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 越南语：
+Spread ID: 1C4D5E6F7G8H9I0J1K2L3M4N5...
+Sheet Name: 交通套题1 越南语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 韩语：
+Spread ID: 1D5E6F7G8H9I0J1K2L3M4N5O6...
+Sheet Name: 交通套题1 韩语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+动态选择套题：
+Spread ID: 动态获取（见说明）
+Sheet Name: 动态获取（见说明）
+API Key: 动态获取（见说明）
+注意： 每套题的Spread ID和Sheet Name需在考题管理表中准确配置，以支持动态获取。
+4.2 API 访问方式
+Google Sheets API 访问格式：
+读取广告数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{ADS_SPREAD_ID}/values/{ADS_SHEET_NAME}?key={ADS_API_KEY}
+
+
+读取分类数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{SYSTEM_SPREADSHEET_ID}/values/考题管理!A:G?key={SYSTEM_API_KEY}
+
+
+读取题库数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{spreadId}/values/{sheetName}?key={apiKey}
+
+
+参数说明：
+参数
+描述
+{ADS_SPREAD_ID}
+广告数据表的电子表格ID。
+{ADS_SHEET_NAME}
+广告数据表中的工作表名称（如 Sheet1）。
+{ADS_API_KEY}
+访问 Google Sheets API 的 API 密钥。
+{SYSTEM_SPREADSHEET_ID}
+分类数据表的电子表格ID。
+{spreadId}
+具体题库的电子表格ID。
+{sheetName}
+具体题库的工作表名称。
+{apiKey}
+访问具体题库 Google Sheets API 的 API 密钥。
+
+示例：
+获取广告数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U/values/Sheet1?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+获取分类数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w/values/考题管理!A:G?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+获取题库数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1BkTNZje3ehMPn2-PNH-yLT1kA.../values/交通套题1?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+系统中引用的各个 Google Sheets 信息：
+广告管理：
+
+
+Spread ID: 1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U
+Sheet Name: Sheet1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+系统表（考题管理）：
+
+
+Spread ID: 1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w
+Sheet Name: 考题管理
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+各套题的Sheet：
+
+
+交通套题1：
+Spread ID: 1BkTNZje3ehMPn2-PNH-yLT1kA...
+Sheet Name: 交通套题1
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 日语：
+Spread ID: 1A2B3C4D5E6F7G8H9I0J1K2L3...
+Sheet Name: 交通套题1 日语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 英语：
+Spread ID: 1B3C4D5E6F7G8H9I0J1K2L3M4...
+Sheet Name: 交通套题1 英语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 越南语：
+Spread ID: 1C4D5E6F7G8H9I0J1K2L3M4N5...
+Sheet Name: 交通套题1 越南语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+交通套题1 韩语：
+Spread ID: 1D5E6F7G8H9I0J1K2L3M4N5O6...
+Sheet Name: 交通套题1 韩语
+API Key: AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+动态选择套题：
+Spread ID: 动态获取（见说明）
+Sheet Name: 动态获取（见说明）
+API Key: 动态获取（见说明）
+注意： 每套题的Spread ID和Sheet Name需在考题管理表中准确配置，以支持动态获取。
+4.2 API 访问方式
+Google Sheets API 访问格式：
+读取广告数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{ADS_SPREAD_ID}/values/{ADS_SHEET_NAME}?key={ADS_API_KEY}
+
+
+读取分类数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{SYSTEM_SPREADSHEET_ID}/values/考题管理!A:G?key={SYSTEM_API_KEY}
+
+
+读取题库数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/{spreadId}/values/{sheetName}?key={apiKey}
+
+
+参数说明：
+参数
+描述
+{ADS_SPREAD_ID}
+广告数据表的电子表格ID。
+{ADS_SHEET_NAME}
+广告数据表中的工作表名称（如 Sheet1）。
+{ADS_API_KEY}
+访问 Google Sheets API 的 API 密钥。
+{SYSTEM_SPREADSHEET_ID}
+分类数据表的电子表格ID。
+{spreadId}
+具体题库的电子表格ID。
+{sheetName}
+具体题库的工作表名称。
+{apiKey}
+访问具体题库 Google Sheets API 的 API 密钥。
+
+示例：
+获取广告数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U/values/Sheet1?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+获取分类数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1bkTNZje3ehMPn2-PNH-yLT1kPpRvs_HAfiYuPg2jA6w/values/考题管理!A:G?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+获取题库数据：
+
+ GET https://sheets.googleapis.com/v4/spreadsheets/1BkTNZje3ehMPn2-PNH-yLT1kA.../values/交通套题1?key=AIzaSyApEcu1zgGEexoS_diT6PkCPQDWkX5Adhk
+
+
+5. 前端视觉设计
+5.1 设计原则
+响应式设计： 适配不同设备和屏幕尺寸，确保良好的用户体验。
+用户友好： 界面简洁直观，操作流程清晰。
+一致性： 统一的视觉元素和交互方式，提高用户的熟悉感。
+可访问性： 确保内容对所有用户（包括有特殊需求的用户）都可访问。
+5.2 页面布局
+顶部 Banner：
+
+
+位置： 页面顶部。
+功能： 展示轮播广告。
+设计： 高度适中，图片清晰。
+标题区域：
+
+
+包含网站名称和口号。
+可点击返回首页。
+主容器：
+
+
+包含复选框、分类按钮、滑动Banner和功能按钮。
+布局： 三列布局
+左侧： 分类按钮
+中间： 滑动Banner
+右侧： 功能按钮
+考试容器：
+
+
+显示题目、图片、答题按钮、控制按钮、剩余题数和计时器。
+设计： 简洁，重点突出题目内容。
+结果容器：
+
+
+显示考试结果，包括得分、错题数、正确数、未做数等。
+包含进度条和操作按钮。
+错题与收藏容器：
+
+
+列表形式展示错题或收藏的题目。
+提供返回按钮或开始测试按钮。
+汇总表现容器：
+
+
+展示用户的考试历史和统计数据。
+使用表格和图表展示。
+底部 Banner：
+
+
+多行平铺展示广告。
+图片清晰，易于点击。
+弹窗广告：
+
+
+底部半圆形弹窗，支持展开查看详细信息。
+设计： 现代，吸引用户注意。
+5.3 加载占位符
+功能描述：
+在页面未完全加载前，显示各模块独立的淡灰色占位符，并配合光晕波动效果表示加载中。
+加载完成后，占位符消失，替换为真实内容。
+详细需求：
+使用CSS动画实现光晕波动效果。
+每个需要加载的模块区域应覆盖独立的占位符，防止用户看到未加载完成的界面。
+确保加载动画在各种设备和浏览器上的兼容性。
+5.4 组件说明
+按钮：
+
+
+颜色区分功能（如绿色表示正确、红色表示错误）。
+悬停效果提升交互性。
+复选框：
+
+
+提供设置选项，如随机题序、自动翻题、显示日语。
+进度条：
+
+
+显示考试完成度，颜色根据完成百分比变化。
+弹窗：
+
+
+初始状态和展开状态，展示不同层次的信息。
+关闭按钮明显，操作简便。
+导航栏：
+
+
+动态渲染的菜单分页。
+包含个人中心、题库导航、驾校合宿、汽车服务及AI功能。
+加载占位符：
+
+
+在各个模块内容区域使用淡灰色占位符，配合光晕波动动画，表示加载中状态。
+占位符在数据加载完成后自动替换为真实内容。
+6. 技术架构与开发方法
+6.1 前端技术栈
+框架/库： React.js 或 Vue.js（根据团队熟悉度选择）。
+样式： Tailwind CSS、CSS3、SASS/LESS，使用CSS预处理器提升开发效率。
+构建工具： Webpack 或 Vite。
+状态管理： Redux（React）或 Vuex（Vue）。
+路由管理： React Router（React）或 Vue Router（Vue）。
+其他： Axios用于HTTP请求，Swiper.js用于轮播和滑动Banner，Lucide Icons用于图标。
+6.2 后端技术栈
+后端框架： Node.js与Express.js，或使用Serverless架构（如AWS Lambda）。
+数据库： 如果需要用户注册与同步，可使用Firebase Firestore或MongoDB。
+安全性： 使用JWT进行身份验证（如果引入用户注册功能）。
+API设计： RESTful API，或GraphQL（根据需求选择）。
+6.3 数据存储
+用户数据： 本地存储（localStorage）用于保存用户设置、收藏、错题和考试进度。
+考试历史： localStorage保存用户的考试记录。
+题库与广告数据： Google Sheets作为数据源，通过Google Sheets API进行访问。
+6.4 安全与权限
+API密钥保护： 不应在前端直接暴露Google Sheets API密钥。建议通过后端代理请求，隐藏敏感信息。
+数据验证： 后端应对所有来自前端的请求进行验证，确保数据完整性和安全性。
+用户隐私： 保护用户的IP地址和地理位置数据，遵守相关法律法规（如GDPR）。
+7. 部署与运维
+前端部署： 使用Netlify、Vercel或自托管的服务器。
+后端部署： 使用Heroku、AWS、Google Cloud Platform或其他云服务提供商。
+持续集成/持续部署（CI/CD）： 配置GitHub Actions或其他CI工具，实现自动化部署。
+监控与日志： 集成监控工具（如Sentry）监控前后端错误，使用日志管理系统记录用户行为和系统状态。
+8. 附录
+8.1 广告数据示例
+A (id)
+B (position)
+C (image)
+D (merchantType)
+L (adType)
+J (title)
+M (link)
+N (btntext)
+O (primetext)
+P (secondaryText)
+m001
+1
+https://example.com/ad1.png
+餐饮
+abs
+优惠活动
+https://merchant1.com/promo
+立即参与
+限时优惠，速来参与！
+更多详情请访问我们的官网。
+m002
+2
+https://example.com/ad2.jpg
+零售
+abs
+新用户专享优惠
+https://merchant2.com/newuser
+立即注册
+注册即享受优惠
+不要错过我们的最新活动。
+m003
+slider
+https://example.com/slider-ad3.png
+教育
+relative
+夏季大促销
+./ads/pages/merchant.html?merchantId=m003
+了解更多
+夏季特惠，惊喜连连！
+点击了解详细促销信息。
+
+8.2 分类数据示例
+internalName
+lang
+categoryName
+sheetName
+spreadId
+apiKey
+internalCode
+traffic_rules_cn
+CN
+交通规则
+交通套题1
+1BkTNZje3ehMPn2-PNH-yLT1kA...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+traffic_rules_jp
+JP
+交通规则（日语）
+交通套题1 日语
+1A2B3C4D5E6F7G8H9I0J1K2L3...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+traffic_rules_en
+EN
+交通规则（英语）
+交通套题1 英语
+1B3C4D5E6F7G8H9I0J1K2L3M4...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+traffic_rules_vn
+VN
+交通规则（越南语）
+交通套题1 越南语
+1C4D5E6F7G8H9I0J1K2L3M4N5...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+traffic_rules_kr
+KR
+交通规则（韩语）
+交通套题1 韩语
+1D5E6F7G8H9I0J1K2L3M4N5O6...
+AIzaSyApEcu1zgGEexoS_diT6...
+code001
+dynamic_mode_cn
+CN
+动态选择
+动态选择套题
+动态获取（见说明）
+动态获取（见说明）
+dynamic_code
+
+8.3 题库数据示例
+rowIndex
+question
+jpQuestion
+enQuestion
+vnQuestion
+krQuestion
+image
+answer
+explanation
+jpExplanation
+enExplanation
+vnExplanation
+krExplanation
+0
+交通信号灯是红色吗？
+交通信号は赤ですか？
+Is the traffic light red?
+Đèn giao thông có màu đỏ không?
+신호등은 빨간색입니까?
+https://example.com/q1.png
+⭕
+红灯表示停止。
+赤信号は停止を示します。
+Red light means stop.
+Đèn đỏ nghĩa là dừng lại.
+빨간색 신호는 정지를 의미합니다.
+1
+道路限速为80公里/小时？
+道路の制限速度は80km/hですか？
+Is the speed limit 80 km/h?
+Giới hạn tốc độ đường là 80 km/h?
+도로 제한 속도는 80km/h입니까?
+https://example.com/q2.png
+❌
+实际限速为60公里/小时。
+実際の制限速度は60km/hです。
+The actual speed limit is 60 km/h.
+Giới hạn tốc độ thực tế là 60 km/h.
+실제 제한 속도는 60km/h입니다.
+
+数据处理逻辑：
+多语言题库存储： 各语言的题目和解释存储在同一工作表中，通过不同列管理。
+双语模式加载： 在“显示日语”选项启用时，通过相同的rowIndex从日语列加载对应的日语内容和解释，并与主语言内容组合显示。
+用途：
+每个题库对应一个 Google Sheets 的工作表。
+支持多语言，通过 internalCode 关联不同语言版本的题库。
+rowIndex 用于唯一标识题目，便于收藏和错题记录。
+
+更新说明
+根据您的最新反馈，已对需求文档进行了以下更新和补充：
+多语言支持范围扩展：
+
+
+除了日语外，新增支持英语、越南语、韩语。
+这些语言（英语、越南语、韩语、中文）在考试时可通过“显示日语”选项，启用双语模式展示题目和解说。
+日语语言用户不具备“显示日语”选项。
+加载占位符的具体实现：
+
+
+各个模块独立实现加载占位符，确保每个内容区域独立显示加载状态。
+通过CSS动画实现淡灰色占位符配合光晕波动效果，提升用户感知加载状态。
+导航栏动态渲染的具体需求：
+
+
+首页菜单分页动态渲染逻辑：
+从1zddtUI5LO9sD99Ab2bJKZKOFFQQyBO7ezEKOjnoyg7U的Sheet1中获取D列（merchantType）数据，去重后渲染为菜单分页。
+进入每个菜单分页时，根据商户种类（D列）从E列获取对应的子类数据，显示在子菜单中。
+菜单层级：
+如果某个merchantType有子类，则显示为一级菜单，并在点击后展开子菜单。
+如果没有子类，则仅显示为一级菜单。
+个人中心的功能范围扩展：
+
+
+除了语言切换外，个人中心新增“清除历史记录”和“考试设置”功能。
+将“清除历史”功能和“设置”模块移动到个人中心。
+将“设置”改名为“考试设置”，与未来的系统设置区分开。
+“考试设置”默认不开启任何功能选项。
+“清除历史”按钮允许用户清除所有历史记录和错题。
+题库导航栏与子类广告的具体实现：
+
+
+题库导航栏点击后，纵向排列题库类型。
+展开具体题库名称时，一次加载两个纵屏内容，下拉后再加载两屏。
+子类广告展示时，根据adType（L列）处理跳转逻辑：
+如果adType为abs，则直接访问外链（M列）。
+如果adType不是abs，则根据商户ID拼接到./abs/pages/merchant.html?merchantId=商户ID进行跳转。
+AI功能的未来集成规划：
+
+
+AI工具包括：
+AI问答： 每天AI提出问题，用户回答正确可获得积分奖励。
+AI咨询： 用户可向AI提问任何有关驾考的问题。
+AI购车咨询： 基于汽车市场信息和用户需求，提供购车建议。
+这些AI功能为未来的付费功能，待用户系统建立后开启。
+预留特定的接口与组件位置，便于未来集成AI对话框。
+大乱斗模式的用户体验设计：
+
+
+题目分配策略为完全随机，无特定优先级。
+大乱斗考试完成后，结果展示页面与普通考试页面相同。
+前端代码对接需求：
+
+
+根据提供的前端代码，确保需求文档中的各个功能需求对应到前端的具体实现，如按钮功能、页面切换逻辑等。
+按钮与功能对照：
+“我的收藏”按钮： 对应收藏功能。
+“错题复习”按钮： 对应错题复习功能。
+“清空历史”按钮： 对应清空历史记录功能。
+“设置”按钮： 对应个人中心中的“考试设置”模态框，包含随机题序、自动翻题、显示日语等开关。
+底部导航栏： 包含练习、题库、驾校合宿、AI、个人中心等功能按钮。
+加载占位符与光晕波动： 根据需求，实现各模块独立的加载占位符动画效果。
+删除不相关或误导的内容：
+
+
+移除了原文中不符合实际代码逻辑的题库数据字段说明。
+确保需求文档中的所有数据结构和字段均与代码中的实际引用一致。
+API密钥安全说明补充：
+
+
+强调后端代理请求的重要性，确保Google Sheets API密钥不在前端代码中直接暴露。
+
+前端代码对需求文档的映射与问题解决
+根据您提供的前端代码和最新的需求反馈，以下是功能映射与相应的代码实现建议：
+功能映射
+顶部 Banner：
+
+
+实现情况： 通过#promotionBanner实现弹窗广告。顶部轮播广告需新增实现，建议使用Swiper.js等轮播库集成。
+标题区域：
+
+
+实现情况： <h1 class="text-2xl font-bold">驾驶员中心</h1>作为标题，已实现返回首页功能。
+主容器与分类按钮：
+
+
+实现情况： 分类列表通过renderCategories()函数动态渲染在#categoriesList中，已实现动态加载。
+考试容器：
+
+
+实现情况： #quizContainer用于显示考试界面，包含题目、图片、答题按钮、控制按钮、剩余题数和计时器。
+结果容器：
+
+
+实现情况： #resultContainer用于显示考试结果。
+错题与收藏容器：
+
+
+实现情况： #mistakeContainer和#favoritesContainer分别用于错题和收藏页面。
+底部导航栏：
+
+
+实现情况： <nav class="bottom-nav">包含多个导航按钮，如练习、题库、驾校服务、AI、个人中心。
+设置模态框：
+
+
+实现情况： #settingsModal包含“考试设置”选项，如随机题序、自动翻题、显示日语。
+弹窗广告：
+
+
+实现情况： #promotionBanner和.promotion-overlay实现底部弹窗广告的显示与隐藏。
+大乱斗模式选择模态框：
+
+
+实现情况： #battleModeModal用于选择参与大乱斗的套题，已实现基本结构。
+需要进一步确认与问题解决
+多语言支持扩展：
+
+
+实现情况： 目前前端代码中设置模态框只有“显示日语”选项。需要扩展至支持英语、越南语、韩语，同时保持“显示日语”功能。
+建议：
+在#settingsModal中增加语言选择功能，允许用户选择主语言（中文、英语、越南语、韩语）。
+根据选择的主语言，动态加载对应的题库内容，并通过“显示日语”选项启用双语模式。
+修改state.settings以包含mainLanguage字段，记录用户选择的主语言。
+加载占位符的具体实现：
+
+
+需求： 各个模块独立实现加载占位符。
+建议：
+在每个需要加载数据的模块区域（如分类列表、最近练习、考试容器等）添加独立的加载占位符HTML结构。
+使用CSS类控制显示与隐藏占位符。
+在数据加载前显示占位符，数据加载完成后隐藏占位符并显示真实内容。
+导航栏动态渲染的具体需求：
+
+
+需求： 首页菜单分页动态渲染逻辑。
+实现情况： 目前菜单为静态按钮，需修改为动态从广告路由表获取数据。
+建议：
+在renderNavigationMenu()函数中，通过API调用获取广告路由表D列（merchantType）数据，去重后渲染为菜单分页。
+绑定点击事件，根据merchantType获取对应子类（E列）数据，并动态生成子菜单。
+实现有子菜单和无子菜单的菜单项展示逻辑。
+个人中心的功能范围扩展：
+
+
+需求： 除了语言切换外，新增“清除历史记录”和“考试设置”功能。
+建议：
+在个人中心页面（可能是一个新的页面或模态框）添加“清除历史记录”按钮和“考试设置”选项。
+修改“设置”模态框为“考试设置”，并将其迁移至个人中心。
+默认不开启任何设置功能选项，用户可自行启用。
+题库导航栏与子类广告的具体实现：
+
+
+需求： 点击题库导航栏展开子类列表，一次加载两个纵屏内容，下拉后再加载两屏。
+建议：
+使用懒加载或无限滚动技术，在用户滚动时动态加载更多子类。
+确保初始加载两个纵屏内容，后续根据用户滚动加载更多。
+AI功能的未来集成规划：
+
+
+需求： 预留AI工具接口与组件位置，未来集成AI对话框。
+建议：
+在个人中心或专门的AI页面预留UI组件位置。
+设计可扩展的组件结构，方便未来集成AI工具。
+大乱斗模式与动态选择套题的具体实现：
+
+
+需求： 完全随机题目分配，无特定优先级，大乱斗考试完成后结果展示与普通考试相同。
+建议：
+确保大乱斗模式选择多个套题后，系统从选定套题中随机抽取题目。
+使用现有的考试结果展示页面，确保大乱斗模式结果与普通考试一致。
+AI功能导航栏按钮：
+
+
+需求： 将“错题记录”按钮改名为“AI”，显示为灰色按钮，禁用点击事件。
+建议：
+修改底部导航栏中第四个按钮的图标和文本为“AI”。
+设置按钮为灰色，并禁用其点击事件。
+预留按钮的未来启用逻辑。
+示例代码调整
+以下是部分建议的代码调整示例：
+多语言支持扩展示例：
+<!-- 个人中心页面示例 -->
+<div class="personal-center" id="personalCenter">
+    <h2 class="text-xl font-bold mb-4">个人中心</h2>
+    <div class="flex justify-between items-center mb-6">
+        <span>语言切换</span>
+        <div class="flex items-center space-x-2">
+            <span id="currentLanguage">中文</span>
+            <button onclick="toggleLanguageOptions()" class="flex items-center space-x-1">
+                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+    <div id="languageOptions" class="hidden flex flex-col space-y-2">
+        <button onclick="switchLanguage('CN')" class="text-left">中文</button>
+        <button onclick="switchLanguage('EN')" class="text-left">英语</button>
+        <button onclick="switchLanguage('VN')" class="text-left">越南语</button>
+        <button onclick="switchLanguage('KR')" class="text-left">韩语</button>
+        <!-- 日语用户不具备“显示日语”选项 -->
+    </div>
+
+    <div class="mt-8">
+        <h3 class="text-lg font-semibold mb-2">考试设置</h3>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-base">随机题序</span>
+                <label class="switch">
+                    <input type="checkbox" id="randomOrder">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-base">自动翻题</span>
+                <label class="switch">
+                    <input type="checkbox" id="autoNext">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-base">显示日语</span>
+                <label class="switch">
+                    <input type="checkbox" id="showJapanese">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8">
+        <button onclick="confirmClearHistory()" class="w-full bg-red-500 text-white rounded-xl py-3 font-medium">
+            清除历史记录
+        </button>
+    </div>
+</div>
+
+// 多语言切换逻辑示例
+let state = {
+    // ...其他状态
+    settings: {
+        randomOrder: false,
+        autoNext: false,
+        showJapanese: false,
+        mainLanguage: 'CN' // 新增主语言字段
+    },
+    // ...其他状态
+};
+
+// 初始化
+document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    loadSettings();
+    renderCategories();
+    renderRecentQuestions();
+    initializePromotionBanner();
+    initializeLoadingPlaceholders();
+    attachEventListeners();
+    renderNavigationMenu();
+});
+
+// 语言切换函数
+function toggleLanguageOptions() {
+    const options = document.getElementById('languageOptions');
+    options.classList.toggle('hidden');
+}
+
+function switchLanguage(lang) {
+    // 显示加载占位符
+    showLoadingPlaceholder('personalCenter');
+
+    // 更新主语言
+    state.settings.mainLanguage = lang;
+    saveSettings();
+
+    // 加载新的语言内容
+    loadLanguageContent(lang).then(() => {
+        // 更新当前语言显示
+        document.getElementById('currentLanguage').textContent = getLanguageName(lang);
+        // 隐藏加载占位符
+        hideLoadingPlaceholder('personalCenter');
+    }).catch(error => {
+        console.error('Failed to switch language:', error);
+        hideLoadingPlaceholder('personalCenter');
+    });
+}
+
+function getLanguageName(lang) {
+    const languages = {
+        'CN': '中文',
+        'EN': '英语',
+        'VN': '越南语',
+        'KR': '韩语'
+    };
+    return languages[lang] || '中文';
+}
+
+加载占位符示例：
+<!-- 分类列表加载占位符 -->
+<div id="categoriesLoading" class="loading-placeholder"></div>
+<div id="categoriesList" class="hidden">
+    <!-- 动态渲染的分类列表 -->
+</div>
+
+<!-- 最近练习加载占位符 -->
+<div id="recentLoading" class="loading-placeholder"></div>
+<div id="recentList" class="hidden">
+    <!-- 动态渲染的最近练习列表 -->
+</div>
+
+<!-- 考试容器加载占位符 -->
+<div id="quizLoading" class="loading-placeholder"></div>
+<div class="quiz-container hidden" id="quizContainer">
+    <!-- 考试内容 -->
+</div>
+
+/* 加载占位符样式 */
+.loading-placeholder {
+    background: #e2e8f0;
+    height: 150px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    margin: 16px;
+}
+
+.loading-placeholder::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150px;
+    height: 100%;
+    width: 150px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        left: -150px;
+    }
+    50% {
+        left: 100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+// 初始化加载占位符
+function initializeLoadingPlaceholders() {
+    // 初始化各个加载占位符
+    // 已在HTML中添加相关占位符元素
+}
+
+// 显示加载占位符
+function showLoadingPlaceholder(moduleId) {
+    const loading = document.getElementById(`${moduleId}Loading`);
+    const content = document.getElementById(moduleId === 'quizContainer' ? 'quizContainer' : `${moduleId}List`);
+    if (loading && content) {
+        loading.classList.remove('hidden');
+        content.classList.add('hidden');
+    }
+}
+
+// 隐藏加载占位符
+function hideLoadingPlaceholder(moduleId) {
+    const loading = document.getElementById(`${moduleId}Loading`);
+    const content = document.getElementById(moduleId === 'quizContainer' ? 'quizContainer' : `${moduleId}List`);
+    if (loading && content) {
+        loading.classList.add('hidden');
+        content.classList.remove('hidden');
+    }
+}
+
+导航栏动态渲染示例：
+<!-- 导航栏区域 -->
+<div class="flex mb-2 -mx-4 px-4 overflow-x-auto hide-scrollbar">
+    <div id="navigationMenu" class="flex space-x-6">
+        <!-- 动态渲染的菜单分页 -->
+    </div>
+</div>
+
+// 渲染导航菜单
+function renderNavigationMenu() {
+    const container = document.getElementById('navigationMenu');
+    showLoadingPlaceholder('navigationMenu');
+
+    fetchNavigationMenu().then(menuItems => {
+        container.innerHTML = menuItems.map(item => `
+            <button class="tab mr-6 pb-2 text-base font-medium text-gray-500" onclick="handleMenuClick('${item}')">
+                ${item}
+            </button>
+        `).join('');
+        hideLoadingPlaceholder('navigationMenu');
+    }).catch(error => {
+        console.error('Failed to load navigation menu:', error);
+        hideLoadingPlaceholder('navigationMenu');
+    });
+}
+
+// 处理菜单点击事件
+function handleMenuClick(merchantType) {
+    // Fetch sub-classes based on merchantType
+    showLoadingPlaceholder(`submenu_${merchantType}`);
+
+    fetchSubClasses(merchantType).then(subClasses => {
+        // Render sub-menu
+        const submenuContainer = document.getElementById(`submenu_${merchantType}`);
+        if (submenuContainer) {
+            submenuContainer.innerHTML = subClasses.map(sub => `
+                <button class="sub-menu-item" onclick="handleSubMenuClick('${sub}')">
+                    ${sub}
+                </button>
+            `).join('');
+            submenuContainer.classList.remove('hidden');
+        }
+        hideLoadingPlaceholder(`submenu_${merchantType}`);
+    }).catch(error => {
+        console.error(`Failed to load sub-classes for ${merchantType}:`, error);
+        hideLoadingPlaceholder(`submenu_${merchantType}`);
+    });
+}
+
+个人中心功能扩展示例：
+<!-- 个人中心加载占位符 -->
+<div id="personalCenterLoading" class="loading-placeholder"></div>
+<div id="personalCenterContent" class="hidden">
+    <!-- 个人中心内容 -->
+</div>
+
+// 显示个人中心
+function showPersonalCenter() {
+    showLoadingPlaceholder('personalCenter');
+    // 加载个人中心内容逻辑
+    loadPersonalCenterContent().then(() => {
+        hideLoadingPlaceholder('personalCenter');
+    }).catch(error => {
+        console.error('Failed to load personal center:', error);
+        hideLoadingPlaceholder('personalCenter');
+    });
+}
+
+AI功能导航栏按钮示例：
+// 将“错题记录”按钮改名为“AI”，并设置为灰色按钮
+document.querySelector('.bottom-nav .nav-item:nth-child(4) i').setAttribute('data-lucide', 'message-circle');
+document.querySelector('.bottom-nav .nav-item:nth-child(4) span').textContent = 'AI';
+document.querySelector('.bottom-nav .nav-item:nth-child(4)').classList.add('disabled');
+document.querySelector('.bottom-nav .nav-item:nth-child(4) i').classList.add('text-gray-400');
+document.querySelector('.bottom-nav .nav-item:nth-child(4) span').classList.add('text-gray-400');
+
+// 禁用按钮点击事件
+document.querySelector('.bottom-nav .nav-item:nth-child(4)').onclick = null;
+
+大乱斗模式与动态选择套题示例：
+// 启动大乱斗模式
+function startBattleMode() {
+    const selectedSheets = getSelectedBattleSheets(); // 获取用户选择的套题
+    const questionCount = getBattleQuestionCount(); // 获取用户输入的题目数量
+
+    if (selectedSheets.length === 0) {
+        alert('请选择至少一个套题参与大乱斗');
+        return;
+    }
+
+    fetchQuestionsFromSheets(selectedSheets, questionCount).then(questions => {
+        state.questions = questions;
+        state.isBattleMode = true;
+        enterExamState();
+        startTimer();
+    }).catch(error => {
+        console.error('Failed to start battle mode:', error);
+    });
+}
+
+// 获取用户选择的套题
+function getSelectedBattleSheets() {
+    // 实现获取用户在battleModeModal中选择的套题逻辑
+    // 返回套题的spreadId和sheetName
+}
+
+// 获取用户输入的题目数量
+function getBattleQuestionCount() {
+    // 实现获取用户输入的题目数量逻辑
+    return parseInt(document.getElementById('battleQuestionCount').value, 10) || 10;
+}
+
+// 从多个套题中随机抽取题目
+function fetchQuestionsFromSheets(sheets, count) {
+    const fetchPromises = sheets.map(sheet => {
+        return fetchQuizData(sheet.spreadId, sheet.sheetName, sheet.apiKey);
+    });
+
+    return Promise.all(fetchPromises).then(results => {
+        let allQuestions = [];
+        results.forEach(questions => {
+            allQuestions = allQuestions.concat(questions);
+        });
+        return shuffleArray(allQuestions).slice(0, count);
+    });
+}
+
+// 开始考试状态
+function enterExamState() {
+    hideAllPages();
+    document.getElementById('quizContainer').style.display = 'block';
+    loadQuestion();
+    startTimer();
+}
+
+
+结论
+通过对现有代码的仔细比对和分析，并结合您的最新需求反馈，需求文档已得到全面的更新和完善。关键修正和补充包括：
+多语言支持扩展： 新增支持英语、越南语、韩语，保持“显示日语”功能。
+加载占位符的具体实现： 各个模块独立实现加载占位符，提升用户体验。
+导航栏动态渲染： 动态从广告路由表获取商户类型，渲染菜单分页和子菜单。
+个人中心功能扩展： 包含语言切换、清除历史记录、考试设置。
+AI功能规划： 预留AI工具接口与组件位置，未来集成多种AI工具。
+大乱斗模式优化： 完全随机题目分配，结果展示与普通考试一致。
+重点关注：
+数据准确性： 确保所有数据结构和字段映射与代码中的实际实现一致，避免数据错误。
+API密钥安全： 使用后端代理保护Google Sheets API密钥，避免在前端暴露敏感信息。
+模块化开发： 前后端分离，确保系统的可维护性和扩展性。
+用户体验优化： 基于最新的前端视觉设计，提升界面的美观性和操作的便捷性。
+性能优化： 优化数据加载与渲染，确保系统响应迅速，尤其是在题库较大或广告较多的情况下。
+可扩展性： 设计支持多语言、更多的广告类型及更复杂的考试模式，以满足未来的需求。
+通过遵循本更新后的需求文档，新的重构版本将具备更高的性能、更佳的用户体验及更强的可维护性，满足用户日益增长的需求。
+如果有任何不确定或不清晰的地方，请随时与我沟通以进一步明确需求。
+
+

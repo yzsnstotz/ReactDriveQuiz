@@ -60,7 +60,7 @@ export function ExamSimulation() {
   }, [categoryId]);
 
   useEffect(() => {
-    let interval: number;
+    let interval: NodeJS.Timeout;
     if (!isTimerPaused) {
       interval = setInterval(() => {
         setTimer(prev => prev + 1);

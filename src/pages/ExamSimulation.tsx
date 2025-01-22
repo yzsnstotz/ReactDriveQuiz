@@ -24,15 +24,24 @@ export function ExamSimulation() {
   const [showJapanese, setShowJapanese] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/questions?category=${categoryId}`);
+        const searchParams = new URLSearchParams(window.location.search);
+        const spreadId = searchParams.get('spreadId');
+        const sheetName = searchParams.get('sheetName');
+        const apiKey = searchParams.get('apiKey');
+
+        if (!spreadId || !sheetName || !apiKey) {
+          throw new Error('缺少必要的参数');
+        }
+
+        const response = await fetch(`/api/questions?spreadId=${spreadId}&sheetName=${sheetName}&apiKey=${apiKey}`);
         if (!response.ok) {
           throw new Error('获取题目失败');
         }
@@ -85,6 +94,22 @@ export function ExamSimulation() {
     const remainingSeconds = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-ios-gray-50 flex items-center justify-center">
+        <div className="text-ios-gray-500">加载中...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-ios-gray-50 flex items-center justify-center">
+        <div className="text-ios-red-500">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-ios-gray-50">

@@ -1,8 +1,6 @@
 import { google } from 'googleapis';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const sheets = google.sheets('v4');
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method !== 'GET') {
@@ -17,15 +15,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
 
-    const { category } = req.query;
-    if (!category) {
-      return res.status(400).json({ error: '缺少category参数' });
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const { spreadId, sheetName, apiKey } = req.query;
+    if (!spreadId || !sheetName || !apiKey) {
+      return res.status(400).json({ error: '缺少必要的参数' });
     }
 
     const response = await sheets.spreadsheets.values.get({
-      auth,
-      spreadsheetId: process.env.SHEET_ID,
-      range: `${category}!A2:G`, // 假设数据从A2开始，包含题目所有字段
+      spreadsheetId: spreadId as string,
+      range: `${sheetName}!A2:I`, // 扩展范围到I列以包含日语文本
     });
 
     const rows = response.data.values;
@@ -33,13 +32,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: '未找到数据' });
     }
 
-    const questions = rows.map((row) => ({
-      id: parseInt(row[0]),
+    const questions = rows.map((row, index) => ({
+      id: index + 2, // 因为数据从A2开始，所以索引需要加2
       question: row[1],
-      japaneseText: row[2],
-      options: [row[3], row[4], row[5], row[6]],
-      correctAnswer: parseInt(row[7]) - 1, // 假设正确答案在第8列，从1开始计数
-      explanation: row[8],
+      options: [row[2], row[3], row[4], row[5]].filter(Boolean),
+      correctAnswer: parseInt(row[6]) - 1, // 假设正确答案是1-4的数字，转换为0-3的索引
+      explanation: row[7],
+      japaneseText: row[8] || null
     }));
 
     res.status(200).json(questions);

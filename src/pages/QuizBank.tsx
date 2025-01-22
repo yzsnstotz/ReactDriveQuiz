@@ -1,15 +1,23 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronLeft, Globe2, BookOpen } from 'lucide-react';
 
-interface QuizCategory {
-  id: number;
-  name: string;
-  description: string;
-  questionCount: number;
-  language: string;
-  sheetId: string;
+interface SubCategory {
   sheetName: string;
+  lang: string;
+  spreadId: string;
+  apiKey: string;
+}
+
+interface QuizCategory {
+  internalName: string;
+  lang: string;
+  categoryName: string;
+  sheetName: string;
+  spreadId: string;
+  apiKey: string;
+  internalCode: string;
+  subCategories: SubCategory[];
 }
 
 export function QuizBank() {
@@ -25,32 +33,34 @@ export function QuizBank() {
     { code: 'ko', name: '한국어' }
   ];
 
-  const quizCategories: QuizCategory[] = [
-    {
-      id: 1,
-      name: '仮免許試験対策',
-      description: '仮免許試験の出題範囲を網羅した問題集',
-      questionCount: 100,
-      language: 'ja',
-      sheetId: 'sheet1',
-      sheetName: 'provisional'
-    },
-    {
-      id: 2,
-      name: '本免許試験対策',
-      description: '本免許試験の出題範囲を網羅した問題集',
-      questionCount: 150,
-      language: 'ja',
-      sheetId: 'sheet2',
-      sheetName: 'full'
-    }
-  ];
+  const [quizCategories, setQuizCategories] = useState<QuizCategory[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/categories');
+        if (!response.ok) {
+          throw new Error('获取题库分类失败');
+        }
+        const data = await response.json();
+        setQuizCategories(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '获取题库分类失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const filteredCategories = quizCategories.filter(category => 
-    (category.language === selectedLanguage || selectedLanguage === 'all') &&
+    (category.lang === selectedLanguage || selectedLanguage === 'all') &&
     (searchQuery === '' ||
-      category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      category.categoryName.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -106,27 +116,36 @@ export function QuizBank() {
       <div className="p-4 space-y-4">
         {filteredCategories.length > 0 ? (
           filteredCategories.map(category => (
-            <button
-              key={category.id}
-              onClick={() => navigate(`/exam?category=${category.id}`)}
-              className="w-full bg-white/90 backdrop-blur-ios rounded-ios-xl p-5 shadow-ios-lg"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <BookOpen className="w-6 h-6 text-ios-blue" />
-                    <h3 className="font-medium text-ios-gray-900 text-lg">{category.name}</h3>
-                  </div>
-                  <p className="text-base text-ios-gray-500">{category.description}</p>
-                  <div className="mt-3 flex items-center space-x-4">
-                    <span className="text-sm text-ios-gray-500">{category.questionCount} 题</span>
+            <div key={category.internalName} className="space-y-2">
+              <div className="w-full bg-white/90 backdrop-blur-ios rounded-ios-xl p-5 shadow-ios-lg">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <BookOpen className="w-6 h-6 text-ios-blue" />
+                      <h3 className="font-medium text-ios-gray-900 text-lg">{category.categoryName}</h3>
+                    </div>
                   </div>
                 </div>
-                <div className="text-ios-blue">
-                  <ChevronLeft className="w-5 h-5 transform rotate-180" />
+                {/* Sub Categories */}
+                <div className="mt-4 space-y-2">
+                  {category.subCategories
+                    .filter(sub => sub.lang === selectedLanguage || selectedLanguage === 'all')
+                    .map((subCategory, index) => (
+                      <button
+                        key={`${category.internalName}-${index}`}
+                        onClick={() => navigate(`/exam?spreadId=${subCategory.spreadId}&sheetName=${subCategory.sheetName}&apiKey=${subCategory.apiKey}`)}
+                        className="w-full p-3 bg-ios-gray-50 rounded-ios-lg hover:bg-ios-gray-100 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-ios-gray-900">{subCategory.sheetName}</span>
+                          <ChevronLeft className="w-4 h-4 text-ios-gray-400 transform rotate-180" />
+                        </div>
+                      </button>
+                    ))
+                  }
                 </div>
               </div>
-            </button>
+            </div>
           ))
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
